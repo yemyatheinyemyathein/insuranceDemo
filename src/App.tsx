@@ -2,11 +2,13 @@ import { useState } from "react";
 import InsuranceDemo from "./app/InsuranceDemo";
 import LoginPage from "./components/LoginPage";
 
+type LoginHandler = (username: string) => void;
+
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [username, setUsername] = useState("");
+  const [username, setUsername] = useState<string>("");
 
-  const handleLogin = (username) => {
+  const handleLogin: LoginHandler = (username) => {
     setIsLoggedIn(true);
     setUsername(username);
   };

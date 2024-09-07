@@ -1,19 +1,23 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 
+interface LoginPageProps {
+  onLogin: (username: string) => void;
+}
+
 const inputVariants = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0 },
 };
 
-const LoginPage = ({ onLogin }) => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
+  const [username, setUsername] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (username && password) {
-      onLogin(username); // Trigger login with the username
+      onLogin(username);
     }
   };
 
