@@ -1,6 +1,13 @@
 import React, { useState, ChangeEvent, FormEvent } from "react";
 import { motion } from "framer-motion";
-import { Document, Page, Text, StyleSheet, PDFDownloadLink } from "@react-pdf/renderer";
+import {
+  Document,
+  Page,
+  Text,
+  StyleSheet,
+  View,
+} from "@react-pdf/renderer";
+import CalculatedPopUpModal from "../components/CalculatedPopUpModal";
 
 interface FormData {
   name: string;
@@ -8,6 +15,7 @@ interface FormData {
   age: string;
   product: string;
   paymentMode: string;
+  productMode: string;
   yearPlan: string;
   amount: string;
 }
@@ -17,18 +25,21 @@ interface InsuranceDemoProps {
 }
 
 const InsuranceDemo: React.FC<InsuranceDemoProps> = ({ username }) => {
+  const [modelOpen, setMyModelOpen] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     name: "",
     dob: "",
     age: "",
     product: "",
     paymentMode: "",
+    productMode: "",
     yearPlan: "",
     amount: "",
   });
-  const [isCalculated, setIsCalculated] = useState(false);
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
       ...prevData,
@@ -42,16 +53,17 @@ const InsuranceDemo: React.FC<InsuranceDemoProps> = ({ username }) => {
 
   const calculateAge = (dob: string) => {
     if (!dob) return;
+
     const today = new Date();
     const birthDate = new Date(dob);
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDifference = today.getMonth() - birthDate.getMonth();
-
-    if (
-      monthDifference < 0 ||
-      (monthDifference === 0 && today.getDate() < birthDate.getDate())
-    ) {
+    const dayDifference = today.getDate() - birthDate.getDate();
+    if (monthDifference < 0 || (monthDifference === 0 && dayDifference < 0)) {
       age--;
+    }
+    if (monthDifference > 0 || (monthDifference === 0 && dayDifference >= 0)) {
+      age++;
     }
     setFormData((prevData) => ({
       ...prevData,
@@ -60,7 +72,7 @@ const InsuranceDemo: React.FC<InsuranceDemoProps> = ({ username }) => {
   };
 
   const calculateSIAmount = (): number | null => {
-    const { amount, product, yearPlan } = formData;
+    const { amount, paymentMode, yearPlan } = formData;
     const siAmount = parseInt(amount);
     const planValue = parseInt(yearPlan);
 
@@ -68,17 +80,17 @@ const InsuranceDemo: React.FC<InsuranceDemoProps> = ({ username }) => {
 
     let calculatedValue: number;
 
-    switch (product) {
-      case "0": // Annual
+    switch (paymentMode) {
+      case "0":
         calculatedValue = Math.round(siAmount / planValue);
         break;
-      case "1": // Monthly
+      case "1":
         calculatedValue = Math.round(siAmount / (planValue * 12));
         break;
-      case "2": // Quarterly
+      case "2":
         calculatedValue = Math.round(siAmount / (planValue * 4));
         break;
-      case "3": // Semi
+      case "3":
         calculatedValue = Math.round(siAmount / (planValue * 6));
         break;
       default:
@@ -88,69 +100,26 @@ const InsuranceDemo: React.FC<InsuranceDemoProps> = ({ username }) => {
     return calculatedValue;
   };
 
+  const getTextFromValue = (
+    value: string,
+    options: { value: string; text: string }[]
+  ) => {
+    const option = options.find((opt) => opt.value === value);
+    return option ? option.text : "";
+  };
+  
+
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     const result = calculateSIAmount();
     console.log("Calculated Value:", result);
-    setIsCalculated(true); 
+    setMyModelOpen(true);
   };
 
   const inputVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0 },
   };
-
-  const MyDocument = (
-    <Document>
-      <Page style={styles.body}>
-        <Text style={styles.header}>Insurance Calculation Report</Text>
-  
-        <Text style={styles.data}>
-          <Text style={styles.label}>Name:</Text>
-          <Text style={styles.value}>{formData.name}</Text>
-        </Text>
-  
-        <Text style={styles.data}>
-          <Text style={styles.label}>Date of Birth:</Text>
-          <Text style={styles.value}>{formData.dob}</Text>
-        </Text>
-  
-        <Text style={styles.data}>
-          <Text style={styles.label}>Age:</Text>
-          <Text style={styles.value}>{formData.age}</Text>
-        </Text>
-  
-        <Text style={styles.data}>
-          <Text style={styles.label}>Product:</Text>
-          <Text style={styles.value}>{formData.product}</Text>
-        </Text>
-  
-        <Text style={styles.data}>
-          <Text style={styles.label}>Payment Mode:</Text>
-          <Text style={styles.value}>{formData.paymentMode}</Text>
-        </Text>
-  
-        <Text style={styles.data}>
-          <Text style={styles.label}>Year Plan:</Text>
-          <Text style={styles.value}>{formData.yearPlan}</Text>
-        </Text>
-  
-        <Text style={styles.data}>
-          <Text style={styles.label}>SI Amount:</Text>
-          <Text style={styles.value}>{formData.amount}</Text>
-        </Text>
-  
-        <Text style={styles.data}>
-          <Text style={styles.label}>Calculated Value:</Text>
-          <Text style={styles.value}>{calculateSIAmount()}</Text>
-        </Text>
-  
-        <Text style={styles.footer}>
-          Agent Name: {username}
-        </Text>
-      </Page>
-    </Document>
-  );
 
   const fields = [
     {
@@ -173,10 +142,10 @@ const InsuranceDemo: React.FC<InsuranceDemoProps> = ({ username }) => {
       name: "product",
       options: [
         { value: "", text: "Select Product" },
-        { value: "0", text: "Annual" },
-        { value: "1", text: "Monthly" },
-        { value: "2", text: "Quarterly" },
-        { value: "3", text: "Semi" },
+        { value: "0", text: "Double Flexi" },
+        { value: "1", text: "Flexi health" },
+        { value: "2", text: "STE" },
+        { value: "3", text: "Student life" },
       ],
     },
     {
@@ -185,6 +154,18 @@ const InsuranceDemo: React.FC<InsuranceDemoProps> = ({ username }) => {
       name: "paymentMode",
       options: [
         { value: "", text: "Select Payment Mode" },
+        { value: "0", text: "Annual" },
+        { value: "1", text: "Monthly" },
+        { value: "2", text: "Quarterly" },
+        { value: "3", text: "Semi" },
+      ],
+    },
+    {
+      label: "Product Mode",
+      type: "select",
+      name: "productMode",
+      options: [
+        { value: "", text: "Select Product Mode" },
         { value: "sa", text: "SA" },
         { value: "ap", text: "AP" },
       ],
@@ -204,10 +185,71 @@ const InsuranceDemo: React.FC<InsuranceDemoProps> = ({ username }) => {
     { label: "SI Amount", type: "number", name: "amount" },
   ];
 
+  const getProductText = (value: string) =>
+    getTextFromValue(
+      value,
+      fields.find((f) => f.name === "product")?.options || []
+    );
+  const getPaymentModeText = (value: string) =>
+    getTextFromValue(
+      value,
+      fields.find((f) => f.name === "paymentMode")?.options || []
+    );
+  const getProductModeText = (value: string) =>
+    getTextFromValue(
+      value,
+      fields.find((f) => f.name === "productMode")?.options || []
+    );
+  const getYearPlanText = (value: string) =>
+    getTextFromValue(
+      value,
+      fields.find((f) => f.name === "yearPlan")?.options || []
+    );
+
+  const MyDocument = (
+    <Document>
+      <Page style={styles.body} orientation="landscape">
+        <Text style={styles.header}>Insurance Calculation Report</Text>
+
+        <View style={styles.table}>
+          <View style={styles.tableRow}>
+            {fields.map((field) => (
+              <Text
+                style={[styles.tableCell, styles.tableHeader]}
+                key={field.name}
+              >
+                {field.label}
+              </Text>
+            ))}
+            <Text style={[styles.tableCell, styles.tableHeader]}>
+              Premium Amount
+            </Text>
+          </View>
+          <View style={styles.tableRow}>
+            {Object.entries(formData).map(([key, value]) => (
+              <Text style={styles.tableCell} key={key}>
+                {key === "product"
+                  ? getProductText(value)
+                  : key === "paymentMode"
+                  ? getPaymentModeText(value)
+                  : key === "productMode"
+                  ? getProductModeText(value)
+                  : key === "yearPlan"
+                  ? getYearPlanText(value)
+                  : value}
+              </Text>
+            ))}
+            <Text style={styles.tableCell}>{calculateSIAmount()}</Text>
+          </View>
+        </View>
+        <Text style={styles.footer}>Agent Name: {username}</Text>
+      </Page>
+    </Document>
+  );
+
   return (
     <div className="md:w-[80%] mx-auto p-6">
       <p className="text-xl font-semibold">Insurance Calculation</p>
-
       <form onSubmit={handleSubmit}>
         {fields.map((field, index) => (
           <motion.div
@@ -218,7 +260,7 @@ const InsuranceDemo: React.FC<InsuranceDemoProps> = ({ username }) => {
             transition={{ duration: 0.5, delay: index * 0.3 }}
             variants={inputVariants}
           >
-            <label htmlFor={field.name} className="block mb-2">
+            <label className="block text-gray-700 text-sm font-bold mb-2">
               {field.label}
             </label>
             {field.type === "select" ? (
@@ -226,10 +268,10 @@ const InsuranceDemo: React.FC<InsuranceDemoProps> = ({ username }) => {
                 name={field.name}
                 value={formData[field.name as keyof FormData]}
                 onChange={handleChange}
-                className="w-full p-2 px-2 rounded border border-gray-400"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
               >
-                {(field.options ?? []).map((option, i) => (
-                  <option key={i} value={option.value}>
+                {field.options?.map((option) => (
+                  <option key={option.value} value={option.value}>
                     {option.text}
                   </option>
                 ))}
@@ -237,48 +279,39 @@ const InsuranceDemo: React.FC<InsuranceDemoProps> = ({ username }) => {
             ) : (
               <input
                 type={field.type}
-                id={field.name}
                 name={field.name}
-                placeholder={field.placeholder}
                 value={formData[field.name as keyof FormData]}
                 onChange={handleChange}
-                className="w-full p-2 rounded outline-none px-2 border border-gray-400 uppercase"
+                placeholder={field.placeholder}
                 readOnly={field.readOnly}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
               />
             )}
           </motion.div>
         ))}
-
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          transition={{ duration: 0.5, delay: 7 * 0.3 }}
-          variants={inputVariants}
-          className="flex justify-end items-center"
+        <button
+          type="submit"
+          className="w-full py-2 px-4 bg-yellow-400 font-semibold text-white rounded-lg mt-4"
         >
-          <button
-            type="submit"
-            className="bg-yellow-400 px-10 py-2 rounded-lg font-semibold text-white"
-          >
-            Calculate
-          </button>
-        </motion.div>
+          Calculate
+        </button>
       </form>
-      {isCalculated && (
-        <div className="mt-6 flex justify-end items-center">
-          <PDFDownloadLink
-            document={MyDocument}
-            fileName="insurance-report.pdf"
-          >
-            {({ loading }) =>
-              loading ? "Loading document..." : (
-                <button className="bg-green-400 px-4 py-2 rounded-lg font-semibold text-white">
-                  Download Report
-                </button>
-              )
-            }
-          </PDFDownloadLink>
-        </div>
+
+      {modelOpen && (
+        <CalculatedPopUpModal
+        data={{
+          ...formData,
+          product: getProductText(formData.product),
+          paymentMode: getPaymentModeText(formData.paymentMode),
+          productMode: getProductModeText(formData.productMode),
+          yearPlan: getYearPlanText(formData.yearPlan),
+        }}
+        modelOpen={modelOpen}
+        setModelOpen={setMyModelOpen}
+        calculatedValue={calculateSIAmount()}
+        MyDocument={MyDocument}
+        username={username}
+      />
       )}
     </div>
   );
@@ -287,35 +320,40 @@ const InsuranceDemo: React.FC<InsuranceDemoProps> = ({ username }) => {
 const styles = StyleSheet.create({
   body: {
     padding: 50,
-    fontFamily: "Helvetica",
   },
   header: {
     fontSize: 18,
     fontWeight: "bold",
+    textAlign: "center",
     marginBottom: 30,
+  },
+  table: {
+    width: "100%",
+    borderStyle: "solid",
+    borderWidth: 1,
+    borderColor: "#000",
+    fontSize: 12,
+  },
+  tableRow: {
+    flexDirection: "row",
+  },
+  tableCell: {
+    flex: 1,
+    padding: 2,
+    fontSize: 12,
+    borderStyle: "solid",
+    borderWidth: 1,
+    borderColor: "#000",
     textAlign: "center",
   },
-  data: {
-    fontSize: 14,
-    marginBottom: 10,
-    paddingBottom: 5,
-    borderBottom: "1px solid #eaeaea",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+  tableHeader: {
+    backgroundColor: "#f0f0f0",
+    fontWeight: "bold",
   },
   footer: {
-    marginTop: 20,
     fontSize: 14,
     textAlign: "right",
-  },
-  label: {
-    fontWeight: "bold",
-    width: "80%",
-  },
-  value: {
-    width: "60%",
-    textAlign: "right",
+    marginTop: 20,
   },
 });
 
