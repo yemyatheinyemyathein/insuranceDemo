@@ -3,13 +3,15 @@ import Modal from 'react-modal';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 
 interface FormData {
-  name: string;
+  agentName: string;
+  customerName: string;
   dob: string;
   age: string;
   product: string;
   paymentMode: string;
-  productMode: string;
+  calculationMode: string;
   yearPlan: string;
+  term: string;
   amount: string;
 }
 
@@ -18,8 +20,8 @@ interface CalculatedPopUpModalProps {
   modelOpen: boolean;
   setModelOpen: React.Dispatch<React.SetStateAction<boolean>>;
   calculatedValue: number | null;
-  username: string;
   MyDocument: JSX.Element;
+  studentLifeExtra: boolean;
 }
 
 const CalculatedPopUpModal: React.FC<CalculatedPopUpModalProps> = ({
@@ -27,8 +29,8 @@ const CalculatedPopUpModal: React.FC<CalculatedPopUpModalProps> = ({
   modelOpen,
   setModelOpen,
   calculatedValue,
-  username,
-  MyDocument
+  MyDocument,
+  studentLifeExtra
 }) => {
   if (!modelOpen) return null;
 
@@ -51,33 +53,33 @@ const CalculatedPopUpModal: React.FC<CalculatedPopUpModalProps> = ({
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Agent By</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer Name</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">DOB</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Age</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Mode</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Mode</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Calculation Mode</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Year Plan</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                {studentLifeExtra && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Term</th>}
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Calculated Value</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Agent By</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               <tr>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{data.name}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{data.agentName}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{data.customerName}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{data.dob}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{data.age}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{data.product}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{data.paymentMode}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{data.productMode}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{data.calculationMode}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{data.yearPlan}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{data.amount}</td>
+                {studentLifeExtra && <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{data.term}</td>}
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {calculatedValue !== null ? calculatedValue : 'N/A'}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 uppercase">
-                  {username}
                 </td>
               </tr>
             </tbody>
