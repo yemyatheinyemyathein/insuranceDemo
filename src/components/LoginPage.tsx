@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 
 interface LoginPageProps {
-  onLogin: (username: string) => void;
+  onLogin: () => void; // Removed username parameter
 }
 
 const inputVariants = {
@@ -17,7 +17,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (username && password) {
-      onLogin(username);
+      onLogin(); // No username parameter passed
     }
   };
 
